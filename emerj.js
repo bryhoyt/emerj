@@ -8,7 +8,7 @@ emerj = {
         return attrs;
     },
     merge: function(base, modified) {
-        /* Merge the diffs between base and modified back into base.
+        /* Merge any differences between base and modified back into base.
          *
          * Operates only the children nodes, and does not change the root node or its
          * attributes.
