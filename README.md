@@ -1,4 +1,4 @@
-== Emerj.js, a 50-line answer to React ==
+# Emerj.js, a 50-line answer to React
 
 Emerj.js is a tiny JavaScript library to render live HTML/DOM updates efficiently and non-destructively, by merging an updated DOM tree into the live DOM, element-by-element, and only changing those elements that differ.
 
@@ -8,7 +8,7 @@ In traditional HTML/JavaScript, this can be tricky to do tidily, which is the ma
 
 Emerj.js aims to cut through all this complexity by doing just one thing, and using the native browser DOM APIs for all the heavy lifting. You provide an HTML string (or an out-of-document DOM tree) and emerj.js compares this to the live DOM (or a subset thereof) and updates just those elements and attributes that differ. To do this, emerj.js uses a similar method used by React described in its reconciliation algorithm: https://facebook.github.io/react/docs/reconciliation.html
 
-== How to use Emerj.js ==
+## How to use Emerj.js
 
 There are four basic steps:
   1. First set up your document, include the necessary files, and make sure there is an element ready to populate with some HTML.
@@ -67,7 +67,7 @@ I learn best by example, so here you are:
 </html>
 ```
 
-== Why Emerj.js ==
+## Why Emerj.js
 
 The DOM UI updating problem doesn't usually surface until the client-side of your web app reaches a certain level of complexity. If you've read this far, you'll probably be familiar with the traditional way of providing dynamic content in a web app:
   1. Some server-side code written in a language like Python grabs data from a database and does some magic with it.
@@ -166,7 +166,7 @@ MyTodoApp.on('data:updated', function(data) {
 
 Notice how it's line-for-line identical to the just-nunjucks example, except for the final line where you merge the HTML into the live DOM, instead of just replacing it. Since it can work equally well with an HTML string or an out-of-document DOM tree, you can generate your HTML/DOM however you like. You could use Handlebars, string-interpolation, direct DOM construction. You could probably also do crazy things like use JSX, or render your templates server-side and render them client-side without a page refresh.
 
-== How it works, and how it's possible ==
+## How it works, and how it's possible
 
 Emerj.js is based on three primary concepts:
   1. Be unopinionated about how the HTML or DOM is generated. Just use any plain HTML or DOM that is passed in, and let the user create it however they like.
@@ -175,7 +175,7 @@ Emerj.js is based on three primary concepts:
 
 There's not really much more to say. It's that simple. The code is simple enough to refer you to it for any more details.
 
-== Isn't the DOM super slow? ==
+## Isn't the DOM super slow?
 
 And isn't this why React had to create their own virtual version?
 
