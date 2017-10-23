@@ -42,7 +42,7 @@
     var data = {iterations: iterations+1, seconds: ((new Date) - started)/1000, now: new Date, random_strings: random_strings};
     emerj.merge(document.body, template.render(data));
     if (iterations+1 < 100) {
-      setTimeout(iterate, 0); // Need to execute asyncronously, otherwise we never give the browser a chance to update.
+      requestAnimationFrame(iterate); // Need to execute asyncronously, otherwise we never give the browser a chance to update.
     } else {
       console.log("Rendered "+(iterations+1)+" times in "+(((new Date) - started)/1000).toFixed(2)+" seconds");
     }
