@@ -1,5 +1,5 @@
 emerj = {
-    attr_dict: function(elem) {
+    attrs: function(elem) {
         var attrs = {};
         for (var i=0; i < elem.attributes.length; i++) {
             var attr = elem.attributes[i];
@@ -31,13 +31,13 @@ emerj = {
          */
          
         if (typeof modified == 'string') {
-            var _modified = modified;
+            var html = modified;
             // Make sure the parent element of the provided HTML is of the same type as
             // `base`'s parent. This matters when the HTML contains fragments that are
             // only valid inside certain elements, eg <td>s, which must have a <tr>
             // parent.
             modified = document.createElement(base.tagName);
-            modified.innerHTML = _modified;
+            modified.innerHTML = html;
         }
 
         // Naively recurse into the children, if any, replacing or updating new
@@ -48,43 +48,46 @@ emerj = {
         // We don't try and preserve identity of elements beyond that. Nothing like
         // React's `key` attribute is provided.
         
-        // Loop through .childNodes, not just .children, so we compare text nodes (and comment nodes, fwiw) too.
-        var new_children = [].slice.call(modified.childNodes);  // Make a copy of the node list, because the `modified` tree changes as we transfer nodes from it into the base.
-        for (var i=0; i < new_children.length; i++) {
-            var new_node = new_children[i];
+        // Loop through .childNodes, not just .children, so we compare text nodes (and
+        // comment nodes, fwiw) too.
+        // First make a copy of the node list to loop through, because the `modified` tree
+        // changes as we transfer nodes from it into the base.
+        var newChildren = [].slice.call(modified.childNodes);
+        for (var i=0; i < newChildren.length; i++) {
+            var newNode = newChildren[i];
             if (i >= base.childNodes.length) {
                 // It's a new node. Append it.
-                base.appendChild(new_node);
+                base.appendChild(newNode);
                 continue;
             }
             var existing = base.childNodes[i];
-            if (existing.nodeType != new_node.nodeType || existing.tagName != new_node.tagName) {
+            if (existing.nodeType != newNode.nodeType || existing.tagName != newNode.tagName) {
                 // Completely different node types. Just update the whole subtree, like React does.
-                base.replaceChild(new_node, existing);
+                base.replaceChild(newNode, existing);
             } else if ([Node.TEXT_NODE, Node.COMMENT_NODE].indexOf(existing.nodeType) >= 0) {
-                // This is the terminating case of the merge_dom() recursion.
-                if (existing.textContent == new_node.textContent) continue;
-                existing.textContent = new_node.textContent;
+                // This is the terminating case of the merge() recursion.
+                if (existing.textContent == newNode.textContent) continue;
+                existing.textContent = newNode.textContent;
             } else {
                 // It's an existing node with the same tag name. Update only what's necessary.
                 // First, make dicts of attributes, for fast lookup:
-                var base_attrs = emerj.attr_dict(existing);
-                var modified_attrs = emerj.attr_dict(new_node);
-                for (var attr in base_attrs) {
+                var attrs = {base: emerj.attrs(existing), modified: emerj.attrs(newNode)};
+                for (var attr in attrs.base) {
                     // Remove any missing attributes.
-                    if (attr in modified_attrs) continue;
+                    if (attr in attrs.modified) continue;
                     existing.removeAttribute(attr);
                 }
-                for (var attr in modified_attrs) {
+                for (var attr in attrs.modified) {
                     // Add and update any new or modified attributes.
-                    if (attr in base_attrs && base_attrs[attr] == modified_attrs[attr]) continue;
-                    existing.setAttribute(attr, modified_attrs[attr]);
+                    if (attr in attrs.base && attrs.base[attr] == attrs.modified[attr]) continue;
+                    existing.setAttribute(attr, attrs.modified[attr]);
                 }
-                // Now, recurse into the children. If the only children are text
-                emerj.merge(existing, new_node);
+                // Now, recurse into the children. If the only children are text, this will
+                // be the final recursion on this node.
+                emerj.merge(existing, newNode);
             }
         }
-        while (base.childNodes.length > new_children.length) {
+        while (base.childNodes.length > newChildren.length) {
             // If base has more children than modified, delete the extras.
             base.removeChild(base.lastChild);
         }
