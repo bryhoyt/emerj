@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <title>To-Do</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"></script>
+</head>
+<body>
+
+  <div id=container></div>
+
+  <script type=text/babel>
+    const Title = () => {
+      return (
+        <div><div><h1>to-do</h1></div></div>
+      );
+    }
+
+    const TodoForm = ({addTodo}) => {
+      let input;
+      return (
+        <div>
+          <input name="text" ref={node => {
+            input = node;
+          }} />
+          <button name="add" onClick={() => {
+            addTodo(input.value);
+            input.value = '';
+          }}>
+            +
+          </button>
+        </div>
+      );
+    }
+
+    const Todo = ({todo, remove}) => {
+      return (<li onClick={() => { remove(todo.id) }}>{todo.text}</li>);
+    }
+
+    const TodoList = ({todos, remove}) => {
+      const todoNode = todos.map((todo) => {
+        return (<Todo todo={todo} key={todo.id} remove={remove}/>)
+      });
+      return (<ul>{todoNode}</ul>);
+    }
+
+
+    var maxId = 0;
+    class TodoApp extends React.Component{
+      constructor(props){
+        super(props);
+        this.state = {
+          items: []
+        }
+      }
+      addTodo(val){
+        const todo = {text: val, id: maxId++}
+        this.state.items.push(todo);
+        this.setState({items: this.state.items});
+      }
+      handleRemove(id){
+        const remaining = this.state.items.filter((todo) => {
+          if(todo.id !== id) return todo;
+        });
+        this.setState({items: remaining});
+      }
+
+      render(){
+        return (
+          <div>
+            <Title />
+            <TodoForm addTodo={this.addTodo.bind(this)}/>
+            <TodoList 
+              todos={this.state.items} 
+              remove={this.handleRemove.bind(this)}
+            />
+          </div>
+        );
+      }
+    }
+    
+    ReactDOM.render(<TodoApp />, document.getElementById('container'));
+
+    var started = new Date;
+    var iterations = 0;
+    function iterate() {
+      document.querySelector('[name=text]').value = "Todo "+iterations;
+      document.querySelector('[name=add]').click();
+      if (iterations+1 < 200) {
+        setTimeout(iterate, 0); // Need to execute asyncronously, otherwise we never give the browser a chance to update.
+      } else {
+        console.log("Rendered "+(iterations+1)+" times in "+(((new Date) - started)/1000).toFixed(2)+" seconds");
+      }
+      iterations++;
+    }
+    iterate();
+  </script>
+</body>
+</html>

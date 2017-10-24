@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+  <title>To-Do</title>
+  <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/nunjucks/3.0.1/nunjucks.js'></script>
+  <script type='text/javascript' src='emerj.js'></script>
+</head>
+
+<body></body>
+
+  <script type='text/template' name=main>
+    <h1>To do</h1>
+    <div>
+      <input name=text>
+      <button name=add>+</button>
+    </div>
+    <ul>
+      {% for item in items %}
+        <li id='{{ item.id }}'>{{ item.text }}</li>
+      {% endfor %}
+    </ul>
+  </script>
+
+  <script>
+    var maxId = 0;
+    var template = nunjucks.compile(document.querySelector('[name=main]').innerHTML);
+    var data = {items: []};
+
+    var renderFrame;
+    addEventListener('data:updated', function() {
+      cancelAnimationFrame(renderFrame);
+      renderFrame = requestAnimationFrame(function() {
+        emerj.merge(document.body, template.render(data));
+      })
+    })
+    
+    emerj.merge(document.body, template.render(data));
+    dispatchEvent(new Event('data:updated'));
+    
+    document.querySelector('[name=add]').addEventListener('click', function() {
+      var text = document.querySelector('[name=text]').value;
+      document.querySelector('[name=text]').value = '';
+      data.items.push({id: maxId++, text: text});
+      dispatchEvent(new Event('data:updated'));
+    });
+    
+    var started = new Date;
+    var iterations = 0;
+    function iterate() {
+      document.querySelector('[name=text]').value = "Todo "+iterations;
+      document.querySelector('[name=add]').click();
+      dispatchEvent(new Event('data:updated'));
+      
+      if (iterations+1 < 200) {
+        setTimeout(iterate, 0); // Need to execute asyncronously, otherwise we never give the browser a chance to update.
+      } else {
+        console.log("Rendered "+(iterations+1)+" times in "+(((new Date) - started)/1000).toFixed(2)+" seconds");
+      }
+      iterations++;
+    }
+    iterate();
+  </script>
+
+</body>
+</html>
