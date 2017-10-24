@@ -45,17 +45,11 @@ I learn best by example, so here you are:
   <script type=text/javascript>
     var data = {todo: []}
 
-    // Set up nunjucks to find template code in <script> elements:
-    var renderer = new nunjucks.Environment({getSource: function(template) {
-        return {
-          src: $('script[type="text/template"][name="'+template+'"]')[0].innerHTML,
-          path: template
-        }
-    }})
-
+    var template = nunjucks.compile(document.querySelector('[name="todo.html"]').innerHTML);
+    
     addEventListener('data:updated', function () {    // Use your preferred event system.
       // You could use requestAnimationFrame() here for better performance.
-      var html = renderer.render('todo.html', data);
+      var html = template.renderer(data);
       emerj.merge(document.querySelector('#root'), html);
     })
 
