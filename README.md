@@ -8,7 +8,7 @@ In traditional HTML/JavaScript, this can be tricky to do tidily, which is the ma
 
 Emerj aims to cut through all this complexity by doing just one thing, and using the native browser DOM APIs for all the heavy lifting. You provide an HTML string (or an out-of-document DOM tree) and Emerj compares this to the live DOM and updates just those elements and attributes that differ. To do this, Emerj uses a similar method used by React described in its reconciliation algorithm: https://facebook.github.io/react/docs/reconciliation.html
 
-For an extended explanation of the thinking behind Emerj, and the design decisions I made along the way, see [the introductory blog post](http://blog.brush.co.nz/...).
+For an extended explanation of the thinking behind Emerj, and the design decisions I made along the way, see [the introductory blog post](http://blog.brush.co.nz/2017/10/emerj-js-efficient-html-ui-in-50-lines/).
 
 ## How to use Emerj
 
@@ -74,7 +74,7 @@ I learn best by example, so here you are:
 
 If you need to create dynamic HTML on-the-fly in the browser, based on some data, and you want something lightweight but powerful and adaptable, and/or Preact/React isn't your cup of tea, then (particularly if you like generating HTML from moustachioed templates, but can't accept the brokenness of overwriting your entire document every render), Emerj might be your answer.
 
-For more, see [the introductory blog post](http://blog.brush.co.nz/...). But here's the short version:
+For more, see [the introductory blog post](http://blog.brush.co.nz/2017/10/emerj-js-efficient-html-ui-in-50-lines/). But here's the short version:
 
 After becoming frustrated with the horribleness of ad-hoc DOM manipulation, and the problems with plain template rendering, I grew attracted to React's clever idea of comparing two virtual DOMs and just updating the differences in the live document. But I couldn't abide JSX, and any solution I adopt needs to retrofit into sizeable existing applications, without requiring a complete overhaul of the UI templates.
 
@@ -89,7 +89,7 @@ There's not really much more to say. It's that simple. The code is simple enough
 
 ## Isn't the DOM super slow?
 
-No. See the [blog post](http://blog.brush.co.nz/...).
+No. See the [blog post](http://blog.brush.co.nz/2017/10/emerj-js-efficient-html-ui-in-50-lines/#performance).
 
 Parsing HTML is more slow. But not nearly enough to justify the slow sad shake of your head you're doing right now. Don't forget your real bottleneck is probably the server round-trip for your API calls.
 
