@@ -6,7 +6,7 @@ It solves the problem of rendering on-the-fly changes to your HTML/DOM webpage o
 
 In traditional HTML/JavaScript, this can be tricky to do tidily, which is the main driver for the recentish proliferation of tools like Angular, React, Ractive, etc. However, these tools all require a moderately significant paradigm shift, and your code needs to adopt the framework from the ground up. They also come with a fair amount of hidden (and not-so-hidden) complexity.
 
-Emerj aims to cut through all this complexity by doing just one thing, and using the native browser DOM APIs for all the heavy lifting. You provide an HTML string (or an out-of-document DOM tree) and Emerj compares this to the live DOM and updates just those elements and attributes that differ. To do this, Emerj uses a similar method used by React described in its reconciliation algorithm: https://facebook.github.io/react/docs/reconciliation.html
+Emerj aims to cut through all this complexity by doing just one thing, and using the native browser DOM APIs for all the heavy lifting. You provide an HTML string (or an out-of-document DOM tree) and Emerj compares this to the live DOM and updates just those elements and attributes that differ. To do this, Emerj uses a similar method used by React described in its [reconciliation algorithm](https://facebook.github.io/react/docs/reconciliation.html).
 
 For an extended explanation of the thinking behind Emerj, and the design decisions I made along the way, see [the introductory blog post](http://blog.brush.co.nz/2017/10/emerj-js-efficient-html-ui-in-50-lines/).
 
