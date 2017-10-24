@@ -13,10 +13,10 @@ For an extended explanation of the thinking behind Emerj, and the design decisio
 ## How to use Emerj
 
 There are four basic steps:
-  1. First set up your document, include the necessary scripts, and add an empty element ready to populate with some HTML.
+  1. Set up your document, include the necessary scripts, and an empty element ready to fill with some content.
   2. Create your data model. This could be as simple as `data = {todo: []}`
-  3. Write some code to generate dynamic HTML based on that data. I recommend your favourite template language, such as Handlebars or Nunjucks.
-  4. Whenever you update your data, run the HTML-generating code, and use Emerj to update the live document.
+  3. Write some code to generate HTML based on that data. You could try [Nunjucks](https://mozilla.github.io/nunjucks/) or anything you like.
+  4. Whenever you update your data, regenerate your HTML, and use Emerj to update the live document.
   
 I learn best by example, so here you are:
 
