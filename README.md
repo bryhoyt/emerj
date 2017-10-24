@@ -49,7 +49,7 @@ I learn best by example, so here you are:
     
     addEventListener('data:updated', function () {    // Use your preferred event system.
       // You could use requestAnimationFrame() here for better performance.
-      var html = template.renderer(data);
+      var html = template.render(data);
       emerj.merge(document.querySelector('#root'), html);
     })
 
