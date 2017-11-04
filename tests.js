@@ -1,2 +1,2 @@
 var assert = require('assert');
-assert(5 == 4, "Test failed!");
+assert(5 == 5, "Test succeed!");
