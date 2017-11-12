@@ -1,2 +1,301 @@
 var assert = require('assert');
-assert(5 == 5, "Test succeed!");
+require('./emerj.js');
+
+// Set up some test dummies and utils:
+
+function deepEqual(obj1, obj2) {
+    try {
+        assert.deepEqual(obj1, obj2);
+        return true;
+    } catch (err) {
+        return false;
+    }
+}
+
+function inherit(proto, fields) {
+    var object = Object.create(proto);
+    if (!fields) return object;
+    for (var k in fields) {
+        object[k] = fields[k];
+    }
+    return object;
+}
+
+Attribute = {
+    name: null,
+    value: null
+}
+
+Node = {
+    ELEMENT_NODE: 1,
+    TEXT_NODE: 3,
+    textContent: null,
+    tagName: null,
+    childNodes: null,
+    nodeType: null,
+    attributes: null,
+    init: function() {
+        this.childNodes = [];
+        this.attributes = [];
+        return this;
+    },
+    isEqualNode: function(other) {
+        if (this.tagName != other.tagName) return false;
+        if (this.textContent != other.textContent) return false;
+        if (this.nodeType != other.nodeType) return false;
+        if (!deepEqual(this.attributes, other.attributes)) return false;
+        if (this.childNodes.length != other.childNodes.length) return false;
+        for (var i=0; i < this.childNodes.length; i++) {
+            if (!this.childNodes[i].isEqualNode(other.childNodes[i])) return false;
+        }
+        return true;
+    },
+    appendChild: function(node) {
+        this.childNodes.push(node);
+    },
+    replaceChild: function(newNode, existing) {
+        var index = this.childNodes.indexOf(existing);
+        this.childNodes[index] = newNode;
+    },
+    removeChild: function(node) {
+        this.childNodes.splice(this.childNodes.indexOf(node), 1);
+    },
+    getAttributeNode: function(attr) {
+        for (var i=0; i < this.attributes.length; i++) {
+            if (this.attributes[i].name == attr) return this.attributes[i];
+        }
+    },
+    getAttribute: function(attr) {
+        var attrNode = this.getAttributeNode(attr);
+        return attrNode? attrNode.value: null;
+    },
+    setAttribute: function(attr, value) {
+        var attrNode = this.getAttributeNode(attr);
+        if (!attrNode) {
+            attrNode = inherit(Attribute, {name: attr, value: value});
+            this.attributes.push(attrNode);
+        }
+        attrNode.value = value;
+    },
+    removeAttribute: function(attr) {
+        var attrNode = this.getAttributeNode(attr);
+        if (!attrNode) return;
+        this.attributes.splice(this.attributes.indexOf(attrNode), 1);
+    }
+};
+document = {
+    createElement: function(tagName) {
+        var element = inherit(Node, {tagName: tagName}).init();
+        return element;
+    },
+}
+
+function el(tagName, attrs, content) {
+    /* Shorthand for create DOMs. */
+    var elem = document.createElement(tagName);
+    if (typeof content == 'string') {
+        var textNode = document.createElement();
+        textNode.textContent = content;
+        textNode.nodeType = Node.TEXT_NODE;
+        elem.childNodes = [textNode];
+    } else if (content instanceof Array) {
+        elem.childNodes = content;
+    } else if (content) {
+        elem.childNodes = [content];
+    }
+    if (attrs) {
+        for (var k in attrs) {
+            elem.setAttribute(k, attrs[k]);
+        }
+    }
+    return elem;
+}
+
+/* === Do the actual tests: === */
+
+// Test create from scratch:
+var vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 1")])
+)
+var body = document.body = el('body');
+emerj.merge(body, vdom);
+assert(body.isEqualNode(el('body', {},
+    el('ul', {}, [el('li', {}, "Item 1")])
+)), "Document body created successfully");
+
+
+// Test that merging identical content does not change element identity:
+vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 1")])
+);
+emerj.merge(body, vdom);
+
+// Test adding a list item inserts new node, but does not change identity of others:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0]];
+vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 1"), el('li', {}, "Item 2")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(items.length == 2, "Two items in list");
+assert(items[0] == orig[0], "First item retains identity");
+assert(items[0].isEqualNode(el('li', {}, "Item 1")), "First item is unchanged");
+assert(items[1].isEqualNode(el('li', {}, "Item 2")), "Second child is what we expected");
+
+
+// Test adding list item at start:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0], items[1]];
+vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 0"), el('li', {}, "Item 1"), el('li', {}, "Item 2")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(items.length == 3, "Three items in list");
+assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(items[1].isEqualNode(el('li', {}, "Item 1")), "Original first item is unchanged");
+assert(items[2].isEqualNode(el('li', {}, "Item 2")), "Original second item is unchanged");
+assert(items[0].isEqualNode(el('li', {}, "Item 0")), "New first item is what we expected");
+
+
+// Test adding list item in middle:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0], items[1], items[2]];
+vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 0"), el('li', {}, "Item 1"), el('li', {}, "Item 1b"), el('li', {}, "Item 2")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(items.length == 4, "Four items in list");
+assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(items[0] == orig[0] && items[1] == orig[1], "Preceding items retain identity");
+assert(items[2] == orig[2], "New item overwrites previous third item");
+assert(items[0].isEqualNode(el('li', {}, "Item 0")), "Original first item is unchanged");
+assert(items[1].isEqualNode(el('li', {}, "Item 1")), "Original second item is unchanged");
+assert(items[2].isEqualNode(el('li', {}, "Item 1b")), "New item is what we expected");
+assert(items[3].isEqualNode(el('li', {}, "Item 2")), "Original third item is unchanged");
+
+
+// Test adding list item at end:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0], items[1], items[2], items[3]];
+vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 0"), el('li', {}, "Item 1"), el('li', {}, "Item 1b"), el('li', {}, "Item 2"), el('li', {}, "Item 3")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(items.length == 5, "Five items in list");
+assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(items[0] == orig[0] && items[1] == orig[1] && items[2] == orig[2] && items[3] == orig[3],
+       "Preceding items retain identity");
+assert(items[0].isEqualNode(el('li', {}, "Item 0")), "Original first item is unchanged");
+assert(items[1].isEqualNode(el('li', {}, "Item 1")), "Original second item is unchanged");
+assert(items[2].isEqualNode(el('li', {}, "Item 1b")), "Original third item is unchanged");
+assert(items[3].isEqualNode(el('li', {}, "Item 2")), "Original fourth item is unchanged");
+assert(items[4].isEqualNode(el('li', {}, "Item 3")), "New item is what we expected");
+
+
+// Test changing order of list items:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0], items[1], items[2], items[3], items[4]];
+vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 3"), el('li', {}, "Item 2"), el('li', {}, "Item 1b"),  el('li', {}, "Item 1"), el('li', {}, "Item 0")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(items.length == 5, "Five items in list");
+assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(items[0] == orig[0] && items[1] == orig[1] && items[2] == orig[2] && items[3] == orig[3] && items[4] == orig[4],
+       "Actual items retain identity");
+assert(items[0].isEqualNode(el('li', {}, "Item 3")) &&
+       items[1].isEqualNode(el('li', {}, "Item 2")) &&
+       items[2].isEqualNode(el('li', {}, "Item 1b")) &&
+       items[3].isEqualNode(el('li', {}, "Item 1")) &&
+       items[4].isEqualNode(el('li', {}, "Item 0")), "Actual content of items is reversed");
+
+
+// Test removing first couple list items:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0], items[1], items[2], items[3], items[4]];
+vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 1b"),  el('li', {}, "Item 1"), el('li', {}, "Item 0")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(items.length == 3, "Three items in list");
+assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(items[0] == orig[0] && items[1] == orig[1] && items[2] == orig[2], "Remaining items replace identity of previous");
+assert(items[0].isEqualNode(el('li', {}, "Item 1b")) &&
+       items[1].isEqualNode(el('li', {}, "Item 1")) &&
+       items[2].isEqualNode(el('li', {}, "Item 0")), "Correct content remains");
+
+
+// Test removing final list item:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0], items[1], items[2]];
+vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 1b"),  el('li', {}, "Item 1")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(items.length == 2, "Two items in list");
+assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(items[0] == orig[0] && items[1] == orig[1], "Remaining items retain identity");
+assert(items[0].isEqualNode(el('li', {}, "Item 1b")) &&
+       items[1].isEqualNode(el('li', {}, "Item 1")), "Correct content remains");
+
+
+// Test changing attributes updates element without changing identity:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0], items[1], items[2]];
+vdom = el('body', {},
+    el('ul', {attr: 'test'}, [el('li', {}, "Item 1b"),  el('li', {}, "Item 1")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(items.length == 2, "Two items in list");
+assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(!body.childNodes[0].isEqualNode(el('ul', {}, [el('li', {}, "Item 1b"),  el('li', {}, "Item 1")])),
+       "Parent is changed");
+assert(body.childNodes[0].getAttribute('attr') == 'test', "Parent has expected attributes");
+assert(items[0] == orig[0] && items[1] == orig[1], "List items retain identity");
+assert(items[0].isEqualNode(el('li', {}, "Item 1b")) &&
+       items[1].isEqualNode(el('li', {}, "Item 1")), "Correct list content remains");
+
+
+// Test removing an attribute:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0], items[1], items[2]];
+vdom = el('body', {},
+    el('ul', {}, [el('li', {}, "Item 1b"),  el('li', {}, "Item 1")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(items.length == 2, "Two items in list");
+assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(body.childNodes[0].getAttribute('attr') != 'test', "Parent does not have attribute");
+assert(body.childNodes[0].isEqualNode(el('ul', {}, [el('li', {}, "Item 1b"),  el('li', {}, "Item 1")])),
+       "Parent content is what we expected");
+assert(items[0] == orig[0] && items[1] == orig[1], "Children retaing identity");
+assert(items[0].isEqualNode(el('li', {}, "Item 1b")) &&
+       items[1].isEqualNode(el('li', {}, "Item 1")), "Correct content remains");
+
+
+// Test changing tagName changes element identity:
+var parent = body.childNodes[0], items = body.childNodes[0].childNodes;
+var orig = [items[0], items[1], items[2]];
+vdom = el('body', {},
+    el('div', {}, [el('li', {}, "Item 1b"),  el('li', {}, "Item 1")])
+);
+emerj.merge(body, vdom);
+items = body.childNodes[0].childNodes;
+assert(items.length == 2, "Two items in list");
+assert(body.childNodes[0] != parent, "Parent has new identity");
+assert(body.childNodes[0].isEqualNode(el('div', {}, [el('li', {}, "Item 1b"),  el('li', {}, "Item 1")])),
+       "Parent content is what we expected");
+assert(items[0] != orig[0] && items[1] != orig[1], "Children have new identity");
+assert(items[0].isEqualNode(el('li', {}, "Item 1b")) &&
+       items[1].isEqualNode(el('li', {}, "Item 1")), "Correct content remains");
+
