@@ -49,7 +49,6 @@
     function iterate() {
       document.querySelector('[name=text]').value = "Todo "+iterations;
       document.querySelector('[name=add]').click();
-      dispatchEvent(new Event('data:updated'));
       
       if (iterations+1 < 200) {
         setTimeout(iterate, 0); // Need to execute asyncronously, otherwise we never give the browser a chance to update.
