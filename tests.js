@@ -34,6 +34,9 @@ Node = {
     childNodes: null,
     nodeType: null,
     attributes: null,
+    firstChild: null,
+    lastChild: null,
+    parentNode: null,
     init: function() {
         this.childNodes = [];
         this.attributes = [];
@@ -50,15 +53,36 @@ Node = {
         }
         return true;
     },
+    reassignParent: function(parent) {
+        if (this.parentNode) this.parentNode.removeChild(this);
+        this.parentNode = parent;
+    },
+    setFirstAndLast: function() {
+        this.firstChild = this.childNodes[0] || null;
+        this.lastChild = this.childNodes[this.childNodes.length-1] || null;
+    },
     appendChild: function(node) {
+        node.reassignParent(this);
         this.childNodes.push(node);
+        this.setFirstAndLast();
     },
     replaceChild: function(newNode, existing) {
+        newNode.reassignParent(this);
         var index = this.childNodes.indexOf(existing);
         this.childNodes[index] = newNode;
+        this.setFirstAndLast();
+    },
+    insertBefore: function(newNode, before) {
+        newNode.reassignParent(this);
+        this.childNodes.splice(this.childNodes.indexOf(before), 0, newNode);
+        this.setFirstAndLast();
+        return newNode;
     },
     removeChild: function(node) {
         this.childNodes.splice(this.childNodes.indexOf(node), 1);
+        node.parentNode = null;
+        this.setFirstAndLast();
+        return node;
     },
     getAttributeNode: function(attr) {
         for (var i=0; i < this.attributes.length; i++) {
@@ -81,7 +105,13 @@ Node = {
         var attrNode = this.getAttributeNode(attr);
         if (!attrNode) return;
         this.attributes.splice(this.attributes.indexOf(attrNode), 1);
-    }
+    },
+    toHtml: function() {
+        if (this.textContent) return this.textContent;
+        var attrs = this.attributes.map(function(a) { return a.name+'="'+a.value+'"'; }).join(' ');
+        var children = this.childNodes.map(function(c) { return c.toHtml(); }).join('');
+        return '<'+this.tagName+(attrs? (' '+attrs): '')+'>'+children+'</'+this.tagName+'>';
+    },
 };
 document = {
     createElement: function(tagName) {
@@ -97,11 +127,11 @@ function el(tagName, attrs, content) {
         var textNode = document.createElement();
         textNode.textContent = content;
         textNode.nodeType = Node.TEXT_NODE;
-        elem.childNodes = [textNode];
+        elem.appendChild(textNode);
     } else if (content instanceof Array) {
-        elem.childNodes = content;
+        content.map(function(c) { elem.appendChild(c); })
     } else if (content) {
-        elem.childNodes = [content];
+        elem.appendChild(content);
     }
     if (attrs) {
         for (var k in attrs) {
@@ -155,6 +185,7 @@ emerj.merge(body, vdom);
 items = body.childNodes[0].childNodes;
 assert(items.length == 3, "Three items in list");
 assert(body.childNodes[0] == parent, "Parent retains identity");
+assert(orig[0] == items[1] && orig[1] == items[2], "Original two items retain identity");
 assert(items[1].isEqualNode(el('li', {}, "Item 1")), "Original first item is unchanged");
 assert(items[2].isEqualNode(el('li', {}, "Item 2")), "Original second item is unchanged");
 assert(items[0].isEqualNode(el('li', {}, "Item 0")), "New first item is what we expected");
@@ -171,7 +202,8 @@ items = body.childNodes[0].childNodes;
 assert(items.length == 4, "Four items in list");
 assert(body.childNodes[0] == parent, "Parent retains identity");
 assert(items[0] == orig[0] && items[1] == orig[1], "Preceding items retain identity");
-assert(items[2] == orig[2], "New item overwrites previous third item");
+assert(items[2] != orig[2], "New item has new identity");
+assert(items[3] == orig[2], "Original third item retains identity");
 assert(items[0].isEqualNode(el('li', {}, "Item 0")), "Original first item is unchanged");
 assert(items[1].isEqualNode(el('li', {}, "Item 1")), "Original second item is unchanged");
 assert(items[2].isEqualNode(el('li', {}, "Item 1b")), "New item is what we expected");
@@ -207,8 +239,9 @@ emerj.merge(body, vdom);
 items = body.childNodes[0].childNodes;
 assert(items.length == 5, "Five items in list");
 assert(body.childNodes[0] == parent, "Parent retains identity");
-assert(items[0] == orig[0] && items[1] == orig[1] && items[2] == orig[2] && items[3] == orig[3] && items[4] == orig[4],
-       "Actual items retain identity");
+assert(items[0] == orig[4] && items[1] == orig[3] && items[2] == orig[2] && items[3] == orig[1] && items[4] == orig[0],
+       "Original items retain identity");
+
 assert(items[0].isEqualNode(el('li', {}, "Item 3")) &&
        items[1].isEqualNode(el('li', {}, "Item 2")) &&
        items[2].isEqualNode(el('li', {}, "Item 1b")) &&
@@ -226,7 +259,7 @@ emerj.merge(body, vdom);
 items = body.childNodes[0].childNodes;
 assert(items.length == 3, "Three items in list");
 assert(body.childNodes[0] == parent, "Parent retains identity");
-assert(items[0] == orig[0] && items[1] == orig[1] && items[2] == orig[2], "Remaining items replace identity of previous");
+assert(items[0] == orig[2] && items[1] == orig[3] && items[2] == orig[4], "Remaining items retain identity");
 assert(items[0].isEqualNode(el('li', {}, "Item 1b")) &&
        items[1].isEqualNode(el('li', {}, "Item 1")) &&
        items[2].isEqualNode(el('li', {}, "Item 0")), "Correct content remains");
@@ -278,7 +311,7 @@ assert(body.childNodes[0] == parent, "Parent retains identity");
 assert(body.childNodes[0].getAttribute('attr') != 'test', "Parent does not have attribute");
 assert(body.childNodes[0].isEqualNode(el('ul', {}, [el('li', {}, "Item 1b"),  el('li', {}, "Item 1")])),
        "Parent content is what we expected");
-assert(items[0] == orig[0] && items[1] == orig[1], "Children retaing identity");
+assert(items[0] == orig[0] && items[1] == orig[1], "Children retain identity");
 assert(items[0].isEqualNode(el('li', {}, "Item 1b")) &&
        items[1].isEqualNode(el('li', {}, "Item 1")), "Correct content remains");
 
