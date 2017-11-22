@@ -1,4 +1,4 @@
-# Emerj.js, a 60-line answer to React
+# Emerj.js, a 60-line answer to React &nbsp;&nbsp;![Travis CI build status](https://api.travis-ci.org/bryhoyt/emerj.svg?branch=master)
 
 Emerj is a tiny JavaScript library to render live HTML/DOM updates efficiently and non-destructively, by merging an updated DOM tree into the live DOM, element-by-element, and only changing those elements that differ.
 
