@@ -1,8 +1,8 @@
-# Emerj.js, a 60-line answer to React &nbsp;&nbsp;![Travis CI build status](https://api.travis-ci.org/bryhoyt/emerj.svg?branch=master)
+# Emerj.js: efficient HTML DOM UI in 60 lines &nbsp;&nbsp;![Travis CI build status](https://api.travis-ci.org/bryhoyt/emerj.svg?branch=master)
 
-Emerj is a tiny JavaScript library to render live HTML/DOM updates efficiently and non-destructively, by merging an updated DOM tree into the live DOM, element-by-element, and only changing those elements that differ.
+Emerj is a tiny JavaScript library to render live HTML/DOM updates efficiently and non-destructively, by merging an updated DOM tree into the live DOM, element-by-element, and only changing those elements that differ. It's a lightweight, powerful answer to the some of the same problems addressed by Facebook's React.
 
-It solves the problem of rendering on-the-fly changes to your HTML/DOM webpage or UI. In most user-facing software, you want to keep the UI-rendering logic quite separate from the business logic, and not clutter your logic with all kinds of extra code to update the UI when the data is modified.
+Specifically, Emerj solves the problem of rendering on-the-fly changes to your HTML/DOM webpage or UI. In most user-facing software, you want to keep the UI-rendering logic quite separate from the business logic, and not clutter your logic with all kinds of extra code to update the UI when the data is modified.
 
 In traditional HTML/JavaScript, this can be tricky to do tidily, which is the main driver for the recentish proliferation of tools like Angular, React, Ractive, etc. However, these tools all require a moderately significant paradigm shift, and your code needs to adopt the framework from the ground up. They also come with a fair amount of hidden (and not-so-hidden) complexity.
 
