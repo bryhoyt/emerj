@@ -7,10 +7,11 @@ emerj = {
         }
         return attrs;
     },
-    nodesByKey: function(parent, key) {
+    nodesByKey: function(parent, makeKey) {
         var map = {};
         for (var j=0; j < parent.childNodes.length; j++) {
-            map[key(parent.childNodes[j])] = parent.childNodes[j];
+            var key = makeKey(parent.childNodes[j]);
+            if (key) map[key] = parent.childNodes[j];
         }
         return map;
     },
@@ -59,11 +60,8 @@ emerj = {
         // Loop through .childNodes, not just .children, so we compare text nodes (and
         // comment nodes, fwiw) too.
 
-        var nodesByKey;
-        if (modified.firstChild && opts.key(modified.firstChild)) {  // If the first node doesn't have a key, don't bother trying to retain identity. You either care or not; you don't half-care.
-            nodesByKey = {old: emerj.nodesByKey(base, opts.key),
+        var nodesByKey = {old: emerj.nodesByKey(base, opts.key),
                           new: emerj.nodesByKey(modified, opts.key)};
-        }
 
         for (var idx=0; modified.firstChild; idx++) {
             var newNode = modified.removeChild(modified.firstChild);
@@ -77,8 +75,12 @@ emerj = {
             
             // If the children are indexed, then make sure to retain their identity in
             // the new order.
-            if (nodesByKey) {
-                var match = nodesByKey.old[opts.key(newNode)] || newNode;
+            var newKey = opts.key(newNode);
+            if (opts.key(baseNode) || newKey) {
+                // If the new node has a key, then either use its existing match, or insert it.
+                // If not, but the old node has a key, then make sure to leave it untouched and insert the new one instead.
+                // Else neither node has a key. Just overwrite old with new.
+                var match = (newKey && newKey in nodesByKey.old)? nodesByKey.old[newKey]: newNode;
                 if (match != baseNode) {
                     baseNode = base.insertBefore(match, baseNode);
                 }
