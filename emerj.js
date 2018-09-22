@@ -78,8 +78,7 @@ emerj = {
             // If the children are indexed, then make sure to retain their identity in
             // the new order.
             if (nodesByKey) {
-                var key = opts.key(newNode);
-                var match = nodesByKey.old[key] || ((opts.key(baseNode) in nodesByKey.new)? newNode: baseNode);
+                var match = nodesByKey.old[opts.key(newNode)] || newNode;
                 if (match != baseNode) {
                     baseNode = base.insertBefore(match, baseNode);
                 }
