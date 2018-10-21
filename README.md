@@ -1,4 +1,7 @@
-# Emerj.js: efficient HTML DOM UI in 60 lines &nbsp;&nbsp;![Travis CI build status](https://api.travis-ci.org/bryhoyt/emerj.svg?branch=master)
+# Emerj.js: efficient HTML DOM UI in 60 lines
+
+[![Build Status](https://secure.travis-ci.org/bryhoyt/emerj.svg)](https://travis-ci.org/bryhoyt/emerj)
+[![NPM Version](https://img.shields.io/npm/v/emerj.svg)](https://www.npmjs.org/package/emerj)
 
 Emerj is a tiny JavaScript library to render live HTML/DOM updates efficiently and non-destructively, by merging an updated DOM tree into the live DOM, element-by-element, and only changing those elements that differ. It's a lightweight, powerful answer to the some of the same problems addressed by Facebook's React.
 
@@ -10,6 +13,29 @@ Emerj aims to cut through all this complexity by doing just one thing, and using
 
 For an extended explanation of the thinking behind Emerj, and the design decisions I made along the way, see [the introductory blog post](http://blog.brush.co.nz/2017/11/emerj-js-efficient-html-ui-in-60-lines/).
 
+
+## Installation
+
+    $ npm install emerj
+
+This exposes CommonJS (`index.js`), UMD (`index.umd.js`), and ESM (`index.mjs`) versions e.g.:
+
+```javascript
+const emerj = require('emerj');
+
+// or
+
+import emerj from 'emerj';
+```
+
+Alternatively, a [CDN](https://unpkg.com/) can be used e.g.:
+
+```html
+<script type='text/javascript' src='https://unpkg.com/emerj@1.0.0'>
+```
+
+Feel free to post issues or questions as they come up.
+
 ## How to use Emerj
 
 There are four basic steps:
@@ -20,12 +46,12 @@ There are four basic steps:
   
 I learn best by example, so here you are:
 
-```
+```jinja2
 <!doctype html>
 <html>
 <head>
   <script type=text/javascript src='nunjucks.js'>
-  <script type=text/javascript src='emerj.js'>
+  <script type=text/javascript src='emerj.umd.js'>
 </head>
 <body>
   <div id=root><!-- The live document will go here --></div>
@@ -98,7 +124,13 @@ But, in case you completely missed the whole point, Nunjucks on its own (or what
 See the [performance section in the introductory blog post](http://blog.brush.co.nz/2017/11/emerj-js-efficient-html-ui-in-60-lines/#performance).
 In short, Emerj+Nunjucks is within cooee of React for a typical modern web app (what's that?!). But test it out for your own needs, and if it's not performant enough for you, either build a component system on top of it, or use something else.
 
-## Try it!
+## Version
 
-Download [emerj.js](https://github.com/bryhoyt/emerj/blob/master/emerj.js) and get started. Feel free to post issues or questions as they come up.
+1.0.0
 
+## Copyright and License
+
+Copyright © 2017-2018 by Bryan Hoyt.
+
+This is free software; you can redistribute it and/or modify it under the
+terms of the [MIT License](https://opensource.org/licenses/MIT).

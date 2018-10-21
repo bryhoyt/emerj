@@ -1,0 +1,38 @@
+{
+    "name": "emerj",
+    "version": "1.0.0",
+    "description": "A tiny JavaScript library to render live HTML/DOM updates efficiently and non-destructively",
+    "main": "dist/index.js",
+    "umd:main": "dist/index.umd.js",
+    "unpkg": "dist/index.umd.js",
+    "module": "dist/index.mjs",
+    "source": "src/emerj.js",
+    "repository": "bryhoyt/emerj",
+    "author": "Bryan Hoyt",
+    "license": "MIT",
+    "files": [
+        "dist/index.js",
+        "dist/index.mjs",
+        "dist/index.umd.js"
+    ],
+    "scripts": {
+        "build:release": "npm run clean && microbundle build --no-sourcemap --name emerj",
+        "build:dev": "microbundle build --name emerj",
+        "clean": "shx rm -rf ./dist",
+        "prepublishOnly": "npm run build:release && node ./test.js",
+        "test": "npm run build:dev && node ./test.js"
+    },
+    "devDependencies": {
+        "microbundle": "^0.6.0",
+        "shx": "^0.3.2",
+        "source-map-support": "^0.5.9"
+    },
+    "keywords": [
+        "dom",
+        "html-generation",
+        "nunjucks",
+        "template",
+        "templates",
+        "virtual-dom"
+    ]
+}

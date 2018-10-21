@@ -1,21 +1,21 @@
-emerj = {
-    attrs: function(elem) {
-        var attrs = {};
-        for (var i=0; i < elem.attributes.length; i++) {
-            var attr = elem.attributes[i];
+const emerj = {
+    attrs(elem) {
+        const attrs = {};
+        for (let i=0; i < elem.attributes.length; i++) {
+            const attr = elem.attributes[i];
             attrs[attr.name] = attr.value;
         }
         return attrs;
     },
-    nodesByKey: function(parent, makeKey) {
-        var map = {};
-        for (var j=0; j < parent.childNodes.length; j++) {
-            var key = makeKey(parent.childNodes[j]);
+    nodesByKey(parent, makeKey) {
+        const map = {};
+        for (let j=0; j < parent.childNodes.length; j++) {
+            const key = makeKey(parent.childNodes[j]);
             if (key) map[key] = parent.childNodes[j];
         }
         return map;
     },
-    merge: function(base, modified, opts) {
+    merge(base, modified, opts) {
         /* Merge any differences between base and modified back into base.
          *
          * Operates only the children nodes, and does not change the root node or its
@@ -38,10 +38,10 @@ emerj = {
          * See https://korynunn.wordpress.com/2013/03/19/the-dom-isnt-slow-you-are/
          */
         opts = opts || {};
-        opts.key = opts.key || function(node) { return node.id; }
+        opts.key = opts.key || (node => node.id);
 
-        if (typeof modified == 'string') {
-            var html = modified;
+        if (typeof modified === 'string') {
+            const html = modified;
             // Make sure the parent element of the provided HTML is of the same type as
             // `base`'s parent. This matters when the HTML contains fragments that are
             // only valid inside certain elements, eg <td>s, which must have a <tr>
@@ -56,60 +56,61 @@ emerj = {
         // it contains more children.
         //
         // For re-ordered children, the `id` attribute can be used to preserve identity.
-        
+
         // Loop through .childNodes, not just .children, so we compare text nodes (and
         // comment nodes, fwiw) too.
 
-        var nodesByKey = {old: emerj.nodesByKey(base, opts.key),
-                          new: emerj.nodesByKey(modified, opts.key)};
+        const nodesByKey = {old: this.nodesByKey(base, opts.key),
+                          new: this.nodesByKey(modified, opts.key)};
 
-        for (var idx=0; modified.firstChild; idx++) {
-            var newNode = modified.removeChild(modified.firstChild);
+        let idx;
+        for (idx=0; modified.firstChild; idx++) {
+            const newNode = modified.removeChild(modified.firstChild);
             if (idx >= base.childNodes.length) {
                 // It's a new node. Append it.
                 base.appendChild(newNode);
                 continue;
             }
-            
-            var baseNode = base.childNodes[idx];
-            
+
+            let baseNode = base.childNodes[idx];
+
             // If the children are indexed, then make sure to retain their identity in
             // the new order.
-            var newKey = opts.key(newNode);
+            const newKey = opts.key(newNode);
             if (opts.key(baseNode) || newKey) {
                 // If the new node has a key, then either use its existing match, or insert it.
                 // If not, but the old node has a key, then make sure to leave it untouched and insert the new one instead.
                 // Else neither node has a key. Just overwrite old with new.
-                var match = (newKey && newKey in nodesByKey.old)? nodesByKey.old[newKey]: newNode;
-                if (match != baseNode) {
+                const match = (newKey && newKey in nodesByKey.old)? nodesByKey.old[newKey]: newNode;
+                if (match !== baseNode) {
                     baseNode = base.insertBefore(match, baseNode);
                 }
             }
-            
-            if (baseNode.nodeType != newNode.nodeType || baseNode.tagName != newNode.tagName) {
+
+            if (baseNode.nodeType !== newNode.nodeType || baseNode.tagName !== newNode.tagName) {
                 // Completely different node types. Just update the whole subtree, like React does.
                 base.replaceChild(newNode, baseNode);
             } else if ([Node.TEXT_NODE, Node.COMMENT_NODE].indexOf(baseNode.nodeType) >= 0) {
                 // This is the terminating case of the merge() recursion.
-                if (baseNode.textContent == newNode.textContent) continue;  // Don't write if we don't need to.
+                if (baseNode.textContent === newNode.textContent) continue;  // Don't write if we don't need to.
                 baseNode.textContent = newNode.textContent;
-            } else if (baseNode != newNode) {   // Only need to update if we haven't just inserted the newNode in.
+            } else if (baseNode !== newNode) {   // Only need to update if we haven't just inserted the newNode in.
                 // It's an existing node with the same tag name. Update only what's necessary.
                 // First, make dicts of attributes, for fast lookup:
-                var attrs = {base: emerj.attrs(baseNode), new: emerj.attrs(newNode)};
-                for (var attr in attrs.base) {
+                const attrs = {base: this.attrs(baseNode), new: this.attrs(newNode)};
+                for (const attr in attrs.base) {
                     // Remove any missing attributes.
                     if (attr in attrs.new) continue;
                     baseNode.removeAttribute(attr);
                 }
-                for (var attr in attrs.new) {
+                for (const attr in attrs.new) {
                     // Add and update any new or modified attributes.
-                    if (attr in attrs.base && attrs.base[attr] == attrs.new[attr]) continue;
+                    if (attr in attrs.base && attrs.base[attr] === attrs.new[attr]) continue;
                     baseNode.setAttribute(attr, attrs.new[attr]);
                 }
                 // Now, recurse into the children. If the only children are text, this will
                 // be the final recursion on this node.
-                emerj.merge(baseNode, newNode);
+                this.merge(baseNode, newNode);
             }
         }
         while (base.childNodes.length > idx) {
@@ -118,3 +119,5 @@ emerj = {
         }
     },
 };
+
+export default emerj;
